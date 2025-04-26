@@ -110,20 +110,39 @@ def save_prediction_to_db(conn, prediction):
 @app.route('/predict', methods=['GET'])
 def predict_weather():
     try:
+        # Load model
         model = load_weather_model()
+
+        # Connect to database
         conn = connect_to_database()
         if not conn:
             return jsonify({'error': 'Database connection failed'}), 500
 
+        # Fetch data
         rows = fetch_latest_weather_data(conn)
-        if len(rows) < 24:
-            return jsonify({'error': 'Not enough data for prediction'}), 400
 
+        # Auto-padding if rows are less than 24
+        if len(rows) < 24:
+            print(f"[WARN] Only {len(rows)} rows found, padding to 24...")
+            last_row = rows[-1] if rows else (0, 0, 0)
+            while len(rows) < 24:
+                rows.append(last_row)
+
+        # Prepare input
+        rows = rows[::-1]  # Most recent last
         X_raw = np.array(rows).astype(float)
-        X_input = X_raw.reshape(1, 24, 4)
+        X_raw_padded = np.concatenate([X_raw, np.zeros((X_raw.shape[0], 1))], axis=1)
+        X_input = X_raw_padded.reshape(1, 24, 4)
+
+        # Predict
         prediction = model.predict(X_input)[0]
+        if prediction.ndim > 1:
+            prediction = prediction.flatten()
+
+        # Save to DB
         save_prediction_to_db(conn, prediction)
 
+        # Return prediction as JSON
         return jsonify({
             'predicted_temperature': float(prediction[0]),
             'predicted_humidity': float(prediction[1]),
@@ -132,7 +151,7 @@ def predict_weather():
         })
 
     except Exception as e:
-        logger.error(f"[ERROR] {e}")
+        print(f"[ERROR] {e}")
         return jsonify({'error': str(e)}), 500
 
     finally:
