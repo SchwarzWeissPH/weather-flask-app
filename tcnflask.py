@@ -7,6 +7,7 @@ from keras.utils import custom_object_scope
 from tcn import TCN
 from datetime import datetime
 import logging
+from threading import Thread
 
 # --- CONFIGURATION ---
 MODEL_PATH = 'tcnflask.keras'
@@ -164,10 +165,15 @@ scheduler.add_job(func=run_prediction, trigger="interval", minutes=1)  # Run eve
 scheduler.start()
 
 # --- MAIN ---
+def start_flask_app():
+    app.run(host='0.0.0.0', port=10000)
+
 if __name__ == '__main__':
-    try:
-        app.run(host='0.0.0.0', port=10000)
-    except (KeyboardInterrupt, SystemExit):
-        pass
-    finally:
-        scheduler.shutdown()  # Shut down the scheduler gracefully
+    # Start Flask in a separate thread to not block the scheduler
+    flask_thread = Thread(target=start_flask_app)
+    flask_thread.daemon = True
+    flask_thread.start()
+
+    # Keep the main thread alive to allow the scheduler to run
+    while True:
+        time.sleep(1)
