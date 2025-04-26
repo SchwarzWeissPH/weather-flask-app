@@ -1,0 +1,6 @@
+Flask
+tensorflow
+keras
+keras-tcn
+pymysql
+numpy
