@@ -76,9 +76,9 @@ def run_prediction():
 def fetch_latest_weather_data(conn):
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT temperature, humidity, pressure 
-        FROM weather_data_2 
-        ORDER BY timestamp DESC 
+        SELECT temperature, humidity, pressure, precipitation
+        FROM weather_data_2
+        ORDER BY timestamp DESC
         LIMIT 24
     """)
     rows = cursor.fetchall()
