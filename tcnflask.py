@@ -8,6 +8,7 @@ from tcn import TCN
 from datetime import datetime
 import logging
 from threading import Thread
+import time
 
 # --- CONFIGURATION ---
 MODEL_PATH = 'tcnflask.keras'
@@ -161,7 +162,7 @@ def predict_weather():
 
 # --- SCHEDULER SETUP ---
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=run_prediction, trigger="interval", minutes=5)  # Run every minute
+scheduler.add_job(func=run_prediction, trigger="interval", minutes=5)  # Run every 5 minutes
 scheduler.start()
 
 # --- MAIN ---
