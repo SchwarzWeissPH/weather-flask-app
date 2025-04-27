@@ -161,7 +161,7 @@ def predict_weather():
 
 # --- SCHEDULER SETUP ---
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=run_prediction, trigger="interval", minutes=1)  # Run every minute
+scheduler.add_job(func=run_prediction, trigger="interval", minutes=5)  # Run every minute
 scheduler.start()
 
 # --- MAIN ---
