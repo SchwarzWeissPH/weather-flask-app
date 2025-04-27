@@ -9,6 +9,7 @@ from datetime import datetime
 import logging
 from threading import Thread
 import time
+import signal
 
 # --- CONFIGURATION ---
 MODEL_PATH = 'tcnflask.keras'
@@ -164,6 +165,13 @@ def predict_weather():
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=run_prediction, trigger="interval", minutes=5)  # Run every 5 minutes
 scheduler.start()
+
+# --- GRACEFUL SHUTDOWN ---
+def shutdown_scheduler(signum, frame):
+    logger.info("[INFO] Shutting down scheduler gracefully...")
+    scheduler.shutdown()
+
+signal.signal(signal.SIGTERM, shutdown_scheduler)
 
 # --- MAIN ---
 def start_flask_app():
